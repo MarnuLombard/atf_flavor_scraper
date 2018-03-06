@@ -47,7 +47,7 @@ Promise.all(promises)
 .then(function(data){
 
     // Sanity Check
-    flavors = flavors.filter(flavor => !!flavor.name)
+    flavors = flavors.filter(flavor => flavor && !!flavor.name)
 
     // Remove twist caps
     flavors = flavors.filter(flavor => !flavor.name.includes('0-Twist-Open Dispens'))
