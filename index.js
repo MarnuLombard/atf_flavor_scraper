@@ -7,9 +7,12 @@ const csvWriter = createCsvWriter({
     header: [
         {id: 'name', title: 'name'},
         {id: 'vendor', title: 'vendor'},
+        {id: 'specific_gravity', title: 'specific_gravity'},
         {id: 'vendor_url', title: 'vendor_url'},
     ]
 });
+
+const PG_GRAVITY = 1.036;
 
 var x = Xray({
     filters: {
@@ -23,14 +26,16 @@ var x = Xray({
   });
 
 var promises = [];
+var subPromises = [];
 var flavors = [];
+var subFlavors = [];
 
 const urls = [
     'http://flavorwest.com/index.php/water-soluble-flavoring.html',
     'http://flavorwest.com/index.php/natural-flavoring.html'
 ]
 
-urls.forEach((url)=>{
+urls.forEach((url) => {
     promises.push(new Promise((resolve, reject) => {
         x(url, '.item', [{
             name: '.item-title | strip',
@@ -44,17 +49,37 @@ urls.forEach((url)=>{
 })
 
 Promise.all(promises)
-.then(function(data){
+.then(() => {
+	// Sanity Check
+	flavors = flavors.filter(flavor => flavor && !!flavor.name)
 
-    // Sanity Check
-    flavors = flavors.filter(flavor => flavor && !!flavor.name)
+	// Remove twist caps
+	flavors = flavors.filter(flavor => !flavor.name.includes('0-Twist-Open Dispens'))
 
-    // Remove twist caps
-    flavors = flavors.filter(flavor => !flavor.name.includes('0-Twist-Open Dispens'))
+	flavors.forEach((flavor) => {
+		subPromises.push(new Promise((resolve, reject) => {
+			x(flavor.vendor_url, '#product_tabs_description_tabbed_contents', '.std')(
+				(err, data) => {
 
-    csvWriter.writeRecords(flavors)
-    .then(() => {
-        console.log('...Done');
-    });
+					let gravity = data.match(/Specific Gravity: ([.0-9])*/i);
 
-})
+					flavor.gravity = gravity // Will be null if no match is returned
+						? gravity[0].replace('Specific Gravity: ', '')
+						: PG_GRAVITY;
+
+					subFlavors.concat(flavor);
+
+					resolve();
+				});
+			})
+		);
+	});
+
+	Promise.all(subPromises)
+		.then(() => {
+			csvWriter.writeRecords(subFlavors)
+				.then(() => {
+					console.log('...Done');
+				});
+		});
+});
