@@ -17,7 +17,7 @@ var x = Xray({
         return typeof value === 'string' ? value.replace(/^\s+|\s+$/g, '') : value
       },
       urlToVendor: (value) => {
-        return url.parse(value).hostName.replace('.com', '');
+        return url.parse(value).hostname.replace('.com', '');
       }
     }
   });
