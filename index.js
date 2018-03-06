@@ -63,7 +63,7 @@ Promise.all(promises)
 
 					let gravity = data.match(/Specific Gravity: ([.0-9])*/i);
 
-					flavor.gravity = gravity // Will be null if no match is returned
+					flavor.specific_gravity = gravity // Will be null if no match is returned
 						? gravity[0].replace('Specific Gravity: ', '')
 						: PG_GRAVITY;
 
