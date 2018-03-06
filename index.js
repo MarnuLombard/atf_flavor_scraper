@@ -16,7 +16,7 @@ var x = Xray({
       strip: function (value) {
         return typeof value === 'string' ? value.replace(/^\s+|\s+$/g, '') : value
       },
-      urlToVendor: (value) => {
+      vendor: (value) => {
         return url.parse(value).hostname.replace('.com', '');
       }
     }
@@ -35,7 +35,7 @@ urls.forEach((url)=>{
         x(url, '.item', [{
             name: '.item-title | strip',
             vendor_url: '.item-title a@href',
-            vendor: '.item-title a@href | urlToVendor',
+            vendor: '.item-title a@href | vendor',
             }])(function(err,data){
                 flavors = flavors.concat(data);
                 resolve();
