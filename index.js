@@ -28,7 +28,6 @@ var x = Xray({
 var promises = [];
 var subPromises = [];
 var flavors = [];
-var subFlavors = [];
 
 const urls = [
     'http://flavorwest.com/index.php/water-soluble-flavoring.html',
@@ -56,7 +55,7 @@ Promise.all(promises)
 	// Remove twist caps
 	flavors = flavors.filter(flavor => !flavor.name.includes('0-Twist-Open Dispens'))
 
-	flavors.forEach((flavor) => {
+	flavors.forEach((flavor, index) => {
 		subPromises.push(new Promise((resolve, reject) => {
 			x(flavor.vendor_url, '#product_tabs_description_tabbed_contents', '.std')(
 				(err, data) => {
@@ -67,7 +66,7 @@ Promise.all(promises)
 						? gravity[0].replace('Specific Gravity: ', '')
 						: PG_GRAVITY;
 
-					subFlavors.concat(flavor);
+					flavors[index] = flavor;
 
 					resolve();
 				});
@@ -77,7 +76,7 @@ Promise.all(promises)
 
 	Promise.all(subPromises)
 		.then(() => {
-			csvWriter.writeRecords(subFlavors)
+			csvWriter.writeRecords(flavors)
 				.then(() => {
 					console.log('...Done');
 				});
